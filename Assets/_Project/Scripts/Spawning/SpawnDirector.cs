@@ -14,6 +14,8 @@ namespace Ryvok
     /// </summary>
     public class SpawnDirector : MonoBehaviour
     {
+        public static SpawnDirector Instance { get; private set; }
+
         [Tooltip("Authored patterns. Leave empty to use the built-in default library.")]
         public List<SpawnPattern> patterns = new List<SpawnPattern>();
 
@@ -21,6 +23,12 @@ namespace Ryvok
         int _slot;
         float _timer;
         readonly List<SpawnPattern> _eligible = new List<SpawnPattern>();
+
+        void Awake()
+        {
+            if (Instance != null && Instance != this) { Destroy(this); return; }
+            Instance = this;
+        }
 
         void OnEnable()
         {
@@ -30,6 +38,14 @@ namespace Ryvok
         void OnDisable()
         {
             if (GameManager.Instance != null) GameManager.Instance.OnRunStart -= ResetRun;
+        }
+
+        /// <summary>Hold off spawning for a while (e.g. Volt's ultimate stun).</summary>
+        public void Stun(float seconds)
+        {
+            _current = null;
+            _slot = 0;
+            _timer = Mathf.Max(_timer, seconds);
         }
 
         void Start()

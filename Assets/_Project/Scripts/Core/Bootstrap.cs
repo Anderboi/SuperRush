@@ -65,7 +65,8 @@ namespace Ryvok
             hero.transform.position = new Vector3(0f, 1f, 0f);
             hero.transform.localScale = new Vector3(0.8f, 1f, 0.8f);
             hero.GetComponent<Renderer>().material = MaterialUtil.Colored(MaterialUtil.Hero);
-            hero.AddComponent<HeroController>();
+            var hc = hero.AddComponent<HeroController>();
+            hc.Data = HeroLibrary.Volt();   // starter ships Volt playable (GDD §15: 1 hero in MVP)
         }
 
         void BuildSystems()
@@ -78,6 +79,7 @@ namespace Ryvok
             sys.AddComponent<ObstacleSpawner>();   // the field (pool + advance + resolve)
             sys.AddComponent<SpawnDirector>();     // decides what/when to spawn
             sys.AddComponent<GroundScroller>();
+            sys.AddComponent<HitStop>();
             sys.AddComponent<HudDebug>();
         }
     }

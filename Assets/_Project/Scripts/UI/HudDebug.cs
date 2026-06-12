@@ -41,6 +41,7 @@ namespace Ryvok
                     int combo = ComboManager.Instance != null ? ComboManager.Instance.Combo : 0;
                     if (combo > 1) Center(combo + "x  COMBO", _mid, -Screen.height / 2 + 40);
                     GUI.Label(new Rect(Screen.width - 180, 16, 200, 30), "Speed " + gm.Speed.ToString("0.0"), _small);
+                    DrawUltimate();
                     break;
 
                 case GameState.GameOver:
@@ -48,6 +49,35 @@ namespace Ryvok
                     Center("Score " + gm.Score + "    Best " + gm.Best, _mid, -30);
                     Center("Swipe or Space to retry", _small, 20);
                     break;
+            }
+        }
+
+        // Hero name + ultimate meter / super button (placeholder; real UI is post-MVP).
+        void DrawUltimate()
+        {
+            var hero = HeroController.Instance;
+            if (hero == null || hero.Data == null) return;
+
+            GUI.Label(new Rect(Screen.width - 180, 44, 200, 30), hero.Data.displayName, _small);
+
+            const float w = 240f, h = 20f;
+            float x = (Screen.width - w) / 2f;
+            float y = Screen.height - 64f;
+
+            GUI.Box(new Rect(x, y, w, h), GUIContent.none);
+            Color prev = GUI.color;
+            GUI.color = hero.UltReady ? new Color(1f, 0.95f, 0.4f) : new Color(0.55f, 0.92f, 1f);
+            GUI.Box(new Rect(x + 2f, y + 2f, (w - 4f) * hero.Charge01, h - 4f), GUIContent.none);
+            GUI.color = prev;
+
+            if (hero.UltReady)
+            {
+                if (GUI.Button(new Rect(x, y - 40f, w, 34f), "ULT READY (tap / F)"))
+                    SwipeDetector.Instance?.TriggerUltimate();
+            }
+            else
+            {
+                GUI.Label(new Rect(x, y - 26f, w, 24f), "ULT " + Mathf.FloorToInt(hero.Charge01 * 100f) + "%", _small);
             }
         }
 

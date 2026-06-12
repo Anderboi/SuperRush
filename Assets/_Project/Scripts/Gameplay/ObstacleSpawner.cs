@@ -76,14 +76,23 @@ namespace Ryvok
             _active.Add(o);
         }
 
+        // Far edge of the strike band, scaled by the active hero's input window
+        // (GDD §8: Kremen forgives slow reads with a wider window).
+        float StrikeMaxZ()
+        {
+            float mult = HeroController.Instance != null ? HeroController.Instance.InputWindowMult : 1f;
+            return Config.StrikeZoneMax * mult;
+        }
+
         /// <summary>Resolve a swipe against the frontmost obstacle in the strike zone.</summary>
         public void Resolve(SwipeDirection dir)
         {
+            float maxZ = StrikeMaxZ();
             Obstacle target = null;
             float bestZ = float.MaxValue;
             foreach (Obstacle o in _active)
             {
-                if (!o.InStrikeZone) continue;
+                if (!o.InZone(maxZ)) continue;
                 if (o.Z < bestZ) { bestZ = o.Z; target = o; }
             }
 
@@ -96,14 +105,70 @@ namespace Ryvok
                 int gain = Config.ScorePerKill * ComboManager.Instance.Multiplier;
                 GameManager.Instance.AddScore(gain);
                 ComboManager.Instance.RegisterKill();
-                CameraShake.Shake(0.12f);
-                Vfx.Pop(pos, MaterialUtil.ForDirection(dir));
+
+                // Hero applies the flavour: element VFX, hit-stop, ult charge, passive.
+                var hero = HeroController.Instance;
+                if (hero != null && hero.Data != null)
+                {
+                    var ctx = new AbilityContext { hero = hero, input = dir, position = pos };
+                    hero.OnStrikeSuccess(in ctx);
+                }
+                else
+                {
+                    CameraShake.Shake(0.12f);
+                    Vfx.Pop(pos, MaterialUtil.ForDirection(dir));
+                }
             }
             else
             {
                 // Wrong direction (or nothing in zone): lose a little combo, no damage.
                 ComboManager.Instance.Whiff();
             }
+        }
+
+        /// <summary>
+        /// Passive arc (Volt): destroy the nearest in-zone threat to a point for a
+        /// bonus kill. Returns true if something was chained.
+        /// </summary>
+        public bool TryChainKill(Vector3 near, Color color)
+        {
+            float maxZ = StrikeMaxZ();
+            Obstacle best = null;
+            float bestSqr = float.MaxValue;
+            foreach (Obstacle o in _active)
+            {
+                if (!o.InZone(maxZ)) continue;
+                float d = (o.transform.position - near).sqrMagnitude;
+                if (d < bestSqr) { bestSqr = d; best = o; }
+            }
+            if (best == null) return false;
+
+            _active.Remove(best);
+            Vector3 pos = best.transform.position;
+            Recycle(best);
+
+            int gain = Config.ScorePerKill * ComboManager.Instance.Multiplier;
+            GameManager.Instance.AddScore(gain);
+            ComboManager.Instance.RegisterKill();
+            Vfx.Pop(pos, color);
+            CameraShake.Shake(0.1f);
+            return true;
+        }
+
+        /// <summary>Ultimate screen-clear: destroy every active threat as a scored kill.</summary>
+        public int ClearAllAsKills(Color color)
+        {
+            int n = _active.Count;
+            for (int i = _active.Count - 1; i >= 0; i--)
+            {
+                Obstacle o = _active[i];
+                Vector3 pos = o.transform.position;
+                Recycle(o);
+                GameManager.Instance.AddScore(Config.ScorePerKill * ComboManager.Instance.Multiplier);
+                Vfx.Pop(pos, color);
+            }
+            _active.Clear();
+            return n;
         }
 
         void ClearField()

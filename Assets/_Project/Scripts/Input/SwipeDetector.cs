@@ -18,8 +18,14 @@ namespace Ryvok
 
         public event Action<SwipeDirection> OnSwipe;
 
+        /// <summary>Ultimate trigger — a separate input from the five combat swipes.</summary>
+        public event Action OnUltimate;
+
         Vector2 _startPos;
         bool _tracking;
+
+        /// <summary>Raise the ultimate input (keyboard F or the HUD super button).</summary>
+        public void TriggerUltimate() => OnUltimate?.Invoke();
 
         void Awake()
         {
@@ -41,6 +47,7 @@ namespace Ryvok
             if (Input.GetKeyDown(KeyCode.LeftArrow)  || Input.GetKeyDown(KeyCode.A)) Emit(SwipeDirection.Left);
             if (Input.GetKeyDown(KeyCode.RightArrow) || Input.GetKeyDown(KeyCode.D)) Emit(SwipeDirection.Right);
             if (Input.GetKeyDown(KeyCode.Space)      || Input.GetKeyDown(KeyCode.Return)) Emit(SwipeDirection.Tap);
+            if (Input.GetKeyDown(KeyCode.F)) TriggerUltimate();
         }
 
         void HandleTouch()

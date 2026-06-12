@@ -78,7 +78,7 @@ namespace Ryvok
         public void StartRun()
         {
             Score = 0;
-            Lives = Config.StartLives;
+            Lives = HeroController.Instance != null ? HeroController.Instance.MaxLives : Config.StartLives;
             Distance = 0f;
             Speed = Config.StartSpeed;
             SetState(GameState.Playing);

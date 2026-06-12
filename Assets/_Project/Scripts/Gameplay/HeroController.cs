@@ -3,11 +3,27 @@ using UnityEngine;
 namespace Ryvok
 {
     /// <summary>
-    /// The hero stays centred (per the core fantasy: attack, don't dodge). It routes
-    /// swipes to the spawner's resolver and plays placeholder squash/flash feedback.
+    /// The hero stays centred (core fantasy: attack, don't dodge). It hosts the hero's
+    /// data-driven abilities (GDD §8, §14.2): routes the five inputs to the spawner's
+    /// resolver, applies the hero's strike flavour + passive on a kill, tracks the
+    /// ultimate meter, and fires the ultimate. Also plays placeholder squash/flash feel.
     /// </summary>
     public class HeroController : MonoBehaviour
     {
+        public static HeroController Instance { get; private set; }
+
+        [Tooltip("Active hero. Assigned by Bootstrap (HeroLibrary.Volt) in the starter.")]
+        public HeroData Data;
+
+        public int StrikeCount { get; private set; }
+        public float Charge { get; private set; }
+
+        public int MaxLives => Data != null ? Data.maxLives : Config.StartLives;
+        public float InputWindowMult => Data != null ? Data.inputWindowMult : 1f;
+        float ChargeMax => (Data != null && Data.ultimate != null) ? Data.ultimate.chargeMax : 100f;
+        public float Charge01 => Mathf.Clamp01(Charge / ChargeMax);
+        public bool UltReady => Charge >= ChargeMax;
+
         Renderer _renderer;
         Color _baseColor;
         Vector3 _baseScale;
@@ -16,36 +32,46 @@ namespace Ryvok
 
         void Awake()
         {
+            Instance = this;
             _renderer = GetComponentInChildren<Renderer>();
             if (_renderer != null) _baseColor = _renderer.material.color;
             _baseScale = transform.localScale;
         }
 
-        void OnEnable()
-        {
-            if (SwipeDetector.Instance != null) SwipeDetector.Instance.OnSwipe += HandleSwipe;
-            if (GameManager.Instance != null)  GameManager.Instance.OnHit += OnHit;
-        }
+        void OnEnable()  => Subscribe();
+        void Start()     => Subscribe();   // re-subscribe safely regardless of Awake ordering
+        void OnDisable() => Unsubscribe();
 
-        void Start()
+        void Subscribe()
         {
-            // Re-subscribe safely regardless of Awake ordering.
             if (SwipeDetector.Instance != null)
             {
                 SwipeDetector.Instance.OnSwipe -= HandleSwipe;
                 SwipeDetector.Instance.OnSwipe += HandleSwipe;
+                SwipeDetector.Instance.OnUltimate -= TryActivateUltimate;
+                SwipeDetector.Instance.OnUltimate += TryActivateUltimate;
             }
             if (GameManager.Instance != null)
             {
                 GameManager.Instance.OnHit -= OnHit;
                 GameManager.Instance.OnHit += OnHit;
+                GameManager.Instance.OnRunStart -= ResetRun;
+                GameManager.Instance.OnRunStart += ResetRun;
             }
         }
 
-        void OnDisable()
+        void Unsubscribe()
         {
-            if (SwipeDetector.Instance != null) SwipeDetector.Instance.OnSwipe -= HandleSwipe;
-            if (GameManager.Instance != null)  GameManager.Instance.OnHit -= OnHit;
+            if (SwipeDetector.Instance != null)
+            {
+                SwipeDetector.Instance.OnSwipe -= HandleSwipe;
+                SwipeDetector.Instance.OnUltimate -= TryActivateUltimate;
+            }
+            if (GameManager.Instance != null)
+            {
+                GameManager.Instance.OnHit -= OnHit;
+                GameManager.Instance.OnRunStart -= ResetRun;
+            }
         }
 
         void HandleSwipe(SwipeDirection dir)
@@ -53,6 +79,32 @@ namespace Ryvok
             if (GameManager.Instance == null || GameManager.Instance.State != GameState.Playing) return;
             ObstacleSpawner.Instance.Resolve(dir);
             _punch = 0.12f;
+        }
+
+        /// <summary>Called by the spawner after a directional strike kills a threat.</summary>
+        public void OnStrikeSuccess(in AbilityContext ctx)
+        {
+            StrikeCount++;
+            if (Data != null && Data.strike != null) Data.strike.Execute(in ctx);
+            if (Data != null && Data.passive != null) Data.passive.OnKill(in ctx);
+        }
+
+        public void AddCharge(float amount) => Charge = Mathf.Min(ChargeMax, Charge + amount);
+
+        public void TryActivateUltimate()
+        {
+            if (GameManager.Instance == null || GameManager.Instance.State != GameState.Playing) return;
+            if (!UltReady || Data == null || Data.ultimate == null) return;
+
+            var ctx = new AbilityContext { hero = this, input = SwipeDirection.None, position = transform.position };
+            Data.ultimate.Activate(in ctx);
+            Charge = 0f;
+        }
+
+        void ResetRun()
+        {
+            StrikeCount = 0;
+            Charge = 0f;
         }
 
         void OnHit() => _flash = 0.18f;

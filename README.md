@@ -25,6 +25,7 @@
 
 - **Свайп** вверх / вниз / влево / вправо, тап — на телефоне и в Game-вью мышью.
 - **Стрелки / WASD** + **Space** (тап) — на клавиатуре.
+- **Ультимейт:** клавиша **F** или кнопка «ULT» в HUD, когда шкала заполнена.
 - Соответствие: **вверх** = воздушная (жёлтая), **вниз** = низкая (красная), **влево/вправо** = полосы (синие), **тап** = фронт по центру (фиолетовый).
 - В меню / после смерти — любой ввод стартует/перезапускает забег.
 
@@ -42,11 +43,13 @@
 Assets/_Project/Scripts/
   Core/      Config, GameState, GameManager, Bootstrap
   Input/     SwipeDirection, SwipeDetector
-  Gameplay/  Obstacle, ObstacleSpawner (поле: пул + движение + резолв), HeroController, GroundScroller
+  Gameplay/  Obstacle, ObstacleSpawner (поле: пул + движение + резолв), HeroController (хост способностей), GroundScroller
   Spawning/  SpawnPattern (ScriptableObject-волна), SpawnDirector (выбор паттернов под сложность)
+  Abilities/ Ability, StrikeAbility, Passive/ChainPassive, Ultimate/ScreenClearUltimate (всё SO)
+  Heroes/    HeroData (SO), HeroLibrary (Вольт в коде для zero-setup)
   Scoring/   ComboManager
-  Feel/      CameraShake, Vfx, MaterialUtil
-  UI/        HudDebug (OnGUI, временный)
+  Feel/      CameraShake, Vfx, HitStop, MaterialUtil
+  UI/        HudDebug (OnGUI, временный — очки/жизни/комбо/шкала ульты)
 ```
 
 ## Чего здесь намеренно НЕТ (по дорожной карте GDD)
@@ -56,7 +59,9 @@ Assets/_Project/Scripts/
 ## Куда расти дальше (маппинг на GDD)
 
 - ~~`ObstacleSpawner` → авторские паттерны-чанки как ScriptableObject (Spawn Director, GDD 9).~~ ✅ **Готово:** `Spawning/SpawnDirector` + `SpawnPattern` (SO). Директор ведёт кривую сложности (0→1 по скорости), выбирает паттерны подходящего бэнда и играет их слоты по «битам». Дефолтная библиотека из 9 волн собрана в коде (zero-setup); свои волны можно создавать ассетами (Create → Ryvok → Spawn Pattern) и закидывать в список `patterns` директора.
-- `HeroController` → ability-система на ScriptableObject (`ввод → эффект`), стартовый герой Вольт (GDD 8, 14.2).
+- ~~`HeroController` → ability-система на ScriptableObject (`ввод → эффект`), стартовый герой Вольт (GDD 8, 14.2).~~ ✅ **Готово:** герой = `HeroData` (SO) + `StrikeAbility` (флейвор удара: VFX-стихия, hit-stop, заряд ульты) + `Passive` + `Ultimate`. Стартовый **Вольт**: пассивка `ChainPassive` (каждый 5-й удар бьёт цепью по соседней угрозе), ульта `ScreenClearUltimate` (гроза: чистит экран + стан спавна). Шкала ульты копится попаданиями, активация — F / кнопка HUD. `HeroData.inputWindowMult` уже масштабирует окно удара (задел под Кремня +20%). Новый герой = новый `HeroData` + ability-ассеты, без правки геймплей-кода.
+
+  *Заметка:* клик по кнопке «ULT» в OnGUI-HUD заодно регистрирует тап-мышь как боевой ввод (артефакт временного HUD) — уйдёт с переходом на TMP/uGUI HUD с перехватом событий. На клавиатуре чисто — жми **F**.
 - двухходовки (7.1): у `Obstacle` уже задел — добавить упорядоченную последовательность стадий + окно-стаггер.
 - `HudDebug` → TMP-HUD с кириллицей; `Vfx`/`CameraShake` → пул партиклов + Cinemachine Impulse.
 - ввод → Unity Input System за тем же `OnSwipe`.

@@ -44,8 +44,8 @@ namespace Ryvok
 
         public float Z => _t.position.z;
 
-        public bool InStrikeZone =>
-            _t.position.z >= Config.StrikeZoneMin && _t.position.z <= Config.StrikeZoneMax;
+        /// <summary>In the strike band, whose far edge scales with the hero's input window.</summary>
+        public bool InZone(float maxZ) => _t.position.z >= Config.StrikeZoneMin && _t.position.z <= maxZ;
 
         public void Deactivate()
         {
