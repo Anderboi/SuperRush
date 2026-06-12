@@ -18,7 +18,7 @@ namespace Ryvok
         [System.Serializable]
         public struct Slot
         {
-            [Tooltip("Which threat / required input (per GDD §6–7).")]
+            [Tooltip("Which threat / required (first) input (per GDD §6–7).")]
             public SwipeDirection input;
 
             [Tooltip("Lane for Up/Down threats (0=left, 1=center, 2=right). " +
@@ -30,11 +30,15 @@ namespace Ryvok
                      "speed rises instead of falling apart.")]
             public float beats;
 
-            public Slot(SwipeDirection input, int lane, float beats)
+            [Tooltip("Second input for a two-step obstacle (GDD §7.1). None = single swipe.")]
+            public SwipeDirection second;
+
+            public Slot(SwipeDirection input, int lane, float beats, SwipeDirection second = SwipeDirection.None)
             {
                 this.input = input;
                 this.lane = lane;
                 this.beats = beats;
+                this.second = second;
             }
         }
 

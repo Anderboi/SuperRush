@@ -44,6 +44,11 @@ namespace Ryvok
         public const int StartLives = 3;
         public const int ScorePerKill = 10;
         public const float ComboWindow = 2.5f;
+
+        // Two-step obstacles (GDD §7.1).
+        public const float StaggerWindow = 0.6f;    // seconds to land the 2nd input
+        public const int   TwoStepBonus  = 15;      // bonus score on a finished two-step (×combo)
+        public const float TwoStepScale  = 1.25f;   // bigger silhouette so it reads as special
     }
 
     public enum HeightLevel { Low, Mid, High }

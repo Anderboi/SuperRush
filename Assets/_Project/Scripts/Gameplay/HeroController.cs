@@ -24,6 +24,9 @@ namespace Ryvok
         public float Charge01 => Mathf.Clamp01(Charge / ChargeMax);
         public bool UltReady => Charge >= ChargeMax;
 
+        /// <summary>Hero element colour — used for stage-confirm flavour on two-step obstacles.</summary>
+        public Color ElementTint => (Data != null && Data.strike != null) ? Data.strike.elementTint : Color.white;
+
         Renderer _renderer;
         Color _baseColor;
         Vector3 _baseScale;

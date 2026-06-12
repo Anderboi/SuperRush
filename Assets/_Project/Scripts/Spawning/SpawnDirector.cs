@@ -85,7 +85,7 @@ namespace Ryvok
 
             // Spawn the current slot, then schedule the next one.
             SpawnPattern.Slot s = _current.slots[_slot];
-            ObstacleSpawner.Instance.SpawnThreat(s.input, s.lane);
+            ObstacleSpawner.Instance.SpawnThreat(s.input, s.lane, s.second);
             _slot++;
 
             if (_slot < _current.slots.Length)
@@ -154,6 +154,16 @@ namespace Ryvok
                     S(SwipeDirection.Tap, 1, 0.85f),
                     S(SwipeDirection.Up, 1, 0.85f)),
 
+                // Two-step "spice" (GDD §7.1) — only from mid difficulty, sparse.
+                Make("Charge-Up", 0.4f, 0.85f,
+                    S(SwipeDirection.Left, 0, 1f),
+                    S2(SwipeDirection.Down, 1, SwipeDirection.Up, 1.1f),  // ground → air finisher
+                    S(SwipeDirection.Right, 2, 0.9f)),
+                Make("Double-Trouble", 0.65f, 1f,
+                    S2(SwipeDirection.Up, 1, SwipeDirection.Right, 1f),
+                    S(SwipeDirection.Tap, 1, 0.85f),
+                    S2(SwipeDirection.Down, 1, SwipeDirection.Left, 1f)),
+
                 // Hard — five-beat scrambles, tighter spacing.
                 Make("Scramble", 0.55f, 1f,
                     S(SwipeDirection.Up, 0, 0.8f),
@@ -173,6 +183,10 @@ namespace Ryvok
 
         static SpawnPattern.Slot S(SwipeDirection input, int lane, float beats) =>
             new SpawnPattern.Slot(input, lane, beats);
+
+        // Two-step slot (GDD §7.1): first → second input.
+        static SpawnPattern.Slot S2(SwipeDirection first, int lane, SwipeDirection second, float beats) =>
+            new SpawnPattern.Slot(first, lane, beats, second);
 
         static SpawnPattern Make(string label, float min, float max, params SpawnPattern.Slot[] slots)
         {

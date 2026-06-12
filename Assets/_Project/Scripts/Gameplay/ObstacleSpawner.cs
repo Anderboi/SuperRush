@@ -51,13 +51,17 @@ namespace Ryvok
             }
         }
 
+        public void SpawnThreat(SwipeDirection input, int lane) =>
+            SpawnThreat(input, lane, SwipeDirection.None);
+
         /// <summary>
-        /// Spawn one threat for the given input. Lane/height are derived from the
-        /// input per the taxonomy (GDD §6–7): Up=high, Down=low, Left/Right/Tap force
-        /// their lane at mid height. <paramref name="lane"/> only applies to Up/Down.
-        /// Called by the SpawnDirector.
+        /// Spawn one threat. Lane/height are derived from the FIRST input per the
+        /// taxonomy (GDD §6–7): Up=high, Down=low, Left/Right/Tap force their lane at
+        /// mid height. <paramref name="lane"/> only applies to Up/Down. A non-None
+        /// <paramref name="second"/> makes it a two-step obstacle (GDD §7.1). Called
+        /// by the SpawnDirector.
         /// </summary>
-        public void SpawnThreat(SwipeDirection input, int lane)
+        public void SpawnThreat(SwipeDirection input, int lane, SwipeDirection second)
         {
             int useLane;
             HeightLevel height;
@@ -72,7 +76,7 @@ namespace Ryvok
             }
 
             Obstacle o = Get();
-            o.Spawn(useLane, height, input);
+            o.Spawn(useLane, height, input, second);
             _active.Add(o);
         }
 
@@ -96,15 +100,35 @@ namespace Ryvok
                 if (o.Z < bestZ) { bestZ = o.Z; target = o; }
             }
 
-            if (target != null && target.RequiredInput == dir)
+            if (target != null && target.CurrentInput == dir)
             {
+                bool twoStep = target.IsTwoStep;
+
+                // Two-step: the first correct swipe only opens the stagger window.
+                if (!target.AdvanceStage())
+                {
+                    var h = HeroController.Instance;
+                    Vector3 stagePos = target.transform.position;
+                    Vfx.Pop(stagePos, h != null ? h.ElementTint : MaterialUtil.ForDirection(dir));
+                    CameraShake.Shake(0.06f);
+                    return; // combo intact, no score yet — finish it during the stagger
+                }
+
+                // Resolved: single kill, or two-step completed.
                 _active.Remove(target);
                 Vector3 pos = target.transform.position;
                 Recycle(target);
 
-                int gain = Config.ScorePerKill * ComboManager.Instance.Multiplier;
-                GameManager.Instance.AddScore(gain);
+                int mult = ComboManager.Instance.Multiplier;
+                GameManager.Instance.AddScore(Config.ScorePerKill * mult);
                 ComboManager.Instance.RegisterKill();
+
+                if (twoStep)
+                {
+                    // Mastery reward: bonus score + an extra streak tick (GDD §7.1).
+                    GameManager.Instance.AddScore(Config.TwoStepBonus * mult);
+                    ComboManager.Instance.RegisterKill();
+                }
 
                 // Hero applies the flavour: element VFX, hit-stop, ult charge, passive.
                 var hero = HeroController.Instance;
