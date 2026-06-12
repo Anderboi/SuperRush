@@ -12,6 +12,10 @@ namespace Ryvok
         public HeroController hero;
         public SwipeDirection input;
         public Vector3 position;
+
+        /// <summary>How early the strike landed in the zone: 1 = earliest edge, 0 = at
+        /// the hero line. Used for "perfect" rewards (Frost's slow-mo, GDD §8).</summary>
+        public float earliness;
     }
 
     /// <summary>

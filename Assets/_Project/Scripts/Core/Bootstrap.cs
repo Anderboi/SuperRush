@@ -65,8 +65,7 @@ namespace Ryvok
             hero.transform.position = new Vector3(0f, 1f, 0f);
             hero.transform.localScale = new Vector3(0.8f, 1f, 0.8f);
             hero.GetComponent<Renderer>().material = MaterialUtil.Colored(MaterialUtil.Hero);
-            var hc = hero.AddComponent<HeroController>();
-            hc.Data = HeroLibrary.Volt();   // starter ships Volt playable (GDD §15: 1 hero in MVP)
+            hero.AddComponent<HeroController>();   // builds the roster; defaults to Volt, Tab to switch
         }
 
         void BuildSystems()

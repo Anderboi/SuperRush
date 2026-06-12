@@ -21,6 +21,9 @@ namespace Ryvok
         /// <summary>Ultimate trigger — a separate input from the five combat swipes.</summary>
         public event Action OnUltimate;
 
+        /// <summary>Menu-only: cycle the selected hero (Tab). Real picker is M3.</summary>
+        public event Action OnCycleHero;
+
         Vector2 _startPos;
         bool _tracking;
 
@@ -48,6 +51,7 @@ namespace Ryvok
             if (Input.GetKeyDown(KeyCode.RightArrow) || Input.GetKeyDown(KeyCode.D)) Emit(SwipeDirection.Right);
             if (Input.GetKeyDown(KeyCode.Space)      || Input.GetKeyDown(KeyCode.Return)) Emit(SwipeDirection.Tap);
             if (Input.GetKeyDown(KeyCode.F)) TriggerUltimate();
+            if (Input.GetKeyDown(KeyCode.Tab)) OnCycleHero?.Invoke();
         }
 
         void HandleTouch()

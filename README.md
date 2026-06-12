@@ -47,8 +47,8 @@ Assets/_Project/Scripts/
   Input/     SwipeDirection, SwipeDetector
   Gameplay/  Obstacle, ObstacleSpawner (поле: пул + движение + резолв), HeroController (хост способностей), GroundScroller
   Spawning/  SpawnPattern (ScriptableObject-волна), SpawnDirector (выбор паттернов под сложность)
-  Abilities/ Ability, StrikeAbility, Passive/ChainPassive, Ultimate/ScreenClearUltimate (всё SO)
-  Heroes/    HeroData (SO), HeroLibrary (Вольт в коде для zero-setup)
+  Abilities/ Ability, StrikeAbility, Passive (Chain/SlowMo), Ultimate (ScreenClear/Burn/Freeze) — всё SO
+  Heroes/    HeroData (SO), HeroLibrary (ростер из 4 героев в коде для zero-setup)
   Scoring/   ComboManager
   Feel/      CameraShake, Vfx, HitStop, MaterialUtil
   UI/        HudDebug (OnGUI, временный — очки/жизни/комбо/шкала ульты)
@@ -64,6 +64,14 @@ Assets/_Project/Scripts/
 - ~~`HeroController` → ability-система на ScriptableObject (`ввод → эффект`), стартовый герой Вольт (GDD 8, 14.2).~~ ✅ **Готово:** герой = `HeroData` (SO) + `StrikeAbility` (флейвор удара: VFX-стихия, hit-stop, заряд ульты) + `Passive` + `Ultimate`. Стартовый **Вольт**: пассивка `ChainPassive` (каждый 5-й удар бьёт цепью по соседней угрозе), ульта `ScreenClearUltimate` (гроза: чистит экран + стан спавна). Шкала ульты копится попаданиями, активация — F / кнопка HUD. `HeroData.inputWindowMult` уже масштабирует окно удара (задел под Кремня +20%). Новый герой = новый `HeroData` + ability-ассеты, без правки геймплей-кода.
 
   *Заметка:* клик по кнопке «ULT» в OnGUI-HUD заодно регистрирует тап-мышь как боевой ввод (артефакт временного HUD) — уйдёт с переходом на TMP/uGUI HUD с перехватом событий. На клавиатуре чисто — жми **F**.
+
+- ✅ **Ростер из 4 героев (GDD §8, §8.1).** Все четыре в `HeroLibrary`, переключение в меню клавишей **Tab** (полноценный пикер коллекции — это M3). Каждый — свои статы + флейвор + пассивка + ульта, без правки геймплей-кода:
+  - **Вольт** (Common, электро) — цепь по соседу каждый 5-й удар; ульта «Гроза» (чистка + стан).
+  - **Блейз** (Rare, огонь) — огонь перекидывается на соседа **каждый** удар (`ChainPassive` N=1); ульта «Пекло» (3с зона-инсинератор — `BurnUltimate`).
+  - **Кремень** (Epic, земля) — **4 HP** и **+20% окна** (танк, стат-пассивка); ульта «Обвал» (мощная чистка, дольше копится).
+  - **Фрост** (Legendary, лёд) — слоу-мо за **идеальный** (ранний) удар (`SlowMoPassive`); ульта «Абсолютный ноль» (заморозка трассы + **×2 очки** на 4с — `FreezeUltimate`).
+
+  Новые архетипы способностей (`SlowMoPassive`, `BurnUltimate`, `FreezeUltimate`) — это SO-сабклассы; добавление героя на готовых архетипах = только новый `HeroData`. `HitStop` стал единым контроллером `Time.timeScale` (hit-stop + слоу-мо).
 - ~~двухходовки (7.1): у `Obstacle` уже задел — добавить упорядоченную последовательность стадий + окно-стаггер.~~ ✅ **Готово (путь A — позиционная двухходовка):** `Obstacle` стал многостадийным. Двухходовое препятствие крупнее (читается как особое), требует два свайпа по порядку. Первый верный свайп открывает **окно-стаггер** (`Config.StaggerWindow`) — препятствие перекрашивается в цвет 2-го ввода и пульсирует; второй свайп добивает с **бонусом** (очки + лишний тик комбо). Не успел во 2-ю стадию — прогресс **откатывается** (не мгновенный урон, GDD §7.1). Двухходовки — «специя»: только в паттернах от средней сложности (`Charge-Up`, `Double-Trouble`). Слот паттерна расширен полем `second`.
 - `HudDebug` → TMP-HUD с кириллицей; `Vfx`/`CameraShake` → пул партиклов + Cinemachine Impulse.
 - ввод → Unity Input System за тем же `OnSwipe`.

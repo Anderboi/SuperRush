@@ -3,9 +3,10 @@ using UnityEngine;
 namespace Ryvok
 {
     /// <summary>
-    /// Brief time freeze for hit crunch (GDD Feel: hit-stop via Time.timeScale). Call
-    /// HitStop.Do(seconds) from anywhere; restores on its own using unscaled time, so
-    /// it works even while timeScale is 0.
+    /// Single owner of Time.timeScale for game feel (GDD Feel): hit-stop freeze and
+    /// Frost's slow-mo. Call HitStop.Do(seconds) for a freeze or HitStop.SlowMo(scale,
+    /// seconds) for slow motion. Always restores to 1 using unscaled time, so it works
+    /// even while timeScale is 0. Latest call wins.
     /// </summary>
     public class HitStop : MonoBehaviour
     {
@@ -14,19 +15,25 @@ namespace Ryvok
 
         void Awake() => _instance = this;
 
-        public static void Do(float seconds)
+        /// <summary>Hard freeze for hit crunch.</summary>
+        public static void Do(float seconds) => Set(0f, seconds);
+
+        /// <summary>Slow motion at <paramref name="scale"/> (0..1) for a real-time window.</summary>
+        public static void SlowMo(float scale, float seconds) => Set(Mathf.Clamp01(scale), seconds);
+
+        static void Set(float scale, float seconds)
         {
             if (_instance == null)
             {
                 var go = new GameObject("_HitStop");
                 _instance = go.AddComponent<HitStop>();
             }
-            _instance.Begin(seconds);
+            _instance.Begin(scale, seconds);
         }
 
-        void Begin(float seconds)
+        void Begin(float scale, float seconds)
         {
-            Time.timeScale = 0f;
+            Time.timeScale = scale;
             _restoreAt = Time.realtimeSinceStartup + seconds;
         }
 

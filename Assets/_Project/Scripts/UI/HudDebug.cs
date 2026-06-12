@@ -30,9 +30,16 @@ namespace Ryvok
             switch (gm.State)
             {
                 case GameState.Menu:
-                    Center("RYVOK", _big, -120);
-                    Center("Swipe or press an Arrow / WASD to start", _mid, -40);
-                    Center("Up=aerial   Down=ground   Left/Right=lanes   Tap/Space=front", _small, 10);
+                    Center("RYVOK", _big, -140);
+                    var hc = HeroController.Instance;
+                    if (hc != null && hc.Data != null)
+                    {
+                        Center(hc.Data.displayName + "   (" + hc.Data.rarity + ", " + hc.Data.element + ")", _mid, -64);
+                        Center("HP " + hc.Data.maxLives + "   Window x" + hc.Data.inputWindowMult.ToString("0.0")
+                               + "   -   Tab to switch hero", _small, -28);
+                    }
+                    Center("Swipe or press an Arrow / WASD to start", _mid, 14);
+                    Center("Up=aerial   Down=ground   Left/Right=lanes   Tap/Space=front   F=ultimate", _small, 56);
                     break;
 
                 case GameState.Playing:

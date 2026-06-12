@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using UnityEngine;
 
 namespace Ryvok
@@ -12,8 +13,11 @@ namespace Ryvok
     {
         public static HeroController Instance { get; private set; }
 
-        [Tooltip("Active hero. Assigned by Bootstrap (HeroLibrary.Volt) in the starter.")]
+        [Tooltip("Active hero. Defaults to the first of the roster; swap on the menu with Tab.")]
         public HeroData Data;
+
+        List<HeroData> _roster;
+        int _heroIndex;
 
         public int StrikeCount { get; private set; }
         public float Charge { get; private set; }
@@ -36,9 +40,20 @@ namespace Ryvok
         void Awake()
         {
             Instance = this;
+            if (_roster == null || _roster.Count == 0) _roster = HeroLibrary.Roster();
+            if (Data == null) Data = _roster[0];
             _renderer = GetComponentInChildren<Renderer>();
             if (_renderer != null) _baseColor = _renderer.material.color;
             _baseScale = transform.localScale;
+        }
+
+        /// <summary>Cycle the active hero on the menu (GDD §8 roster; real picker is M3).</summary>
+        public void CycleHero()
+        {
+            if (GameManager.Instance != null && GameManager.Instance.State != GameState.Menu) return;
+            if (_roster == null || _roster.Count == 0) return;
+            _heroIndex = (_heroIndex + 1) % _roster.Count;
+            Data = _roster[_heroIndex];
         }
 
         void OnEnable()  => Subscribe();
@@ -53,6 +68,8 @@ namespace Ryvok
                 SwipeDetector.Instance.OnSwipe += HandleSwipe;
                 SwipeDetector.Instance.OnUltimate -= TryActivateUltimate;
                 SwipeDetector.Instance.OnUltimate += TryActivateUltimate;
+                SwipeDetector.Instance.OnCycleHero -= CycleHero;
+                SwipeDetector.Instance.OnCycleHero += CycleHero;
             }
             if (GameManager.Instance != null)
             {
@@ -69,6 +86,7 @@ namespace Ryvok
             {
                 SwipeDetector.Instance.OnSwipe -= HandleSwipe;
                 SwipeDetector.Instance.OnUltimate -= TryActivateUltimate;
+                SwipeDetector.Instance.OnCycleHero -= CycleHero;
             }
             if (GameManager.Instance != null)
             {

@@ -81,17 +81,27 @@ namespace Ryvok
             Lives = HeroController.Instance != null ? HeroController.Instance.MaxLives : Config.StartLives;
             Distance = 0f;
             Speed = Config.StartSpeed;
+            _scoreMultUntil = 0f;
             SetState(GameState.Playing);
             OnRunStart?.Invoke();
         }
 
+        float _scoreMultUntil;
+        int _scoreMultFactor = 1;
+
+        /// <summary>Apply a temporary score multiplier (Frost ult ×2, GDD §8).</summary>
+        public void SetScoreMultiplier(int factor, float seconds)
+        {
+            _scoreMultFactor = Mathf.Max(1, factor);
+            _scoreMultUntil = Time.time + seconds;
+        }
+
         public void AddScore(int amount)
         {
-            if (amount != 0)
-            {
-                Score += amount;
-                OnScored?.Invoke(amount);
-            }
+            if (amount == 0) return;
+            if (Time.time < _scoreMultUntil) amount *= _scoreMultFactor;
+            Score += amount;
+            OnScored?.Invoke(amount);
         }
 
         public void Damage()

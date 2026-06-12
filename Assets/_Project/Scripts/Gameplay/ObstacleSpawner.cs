@@ -16,6 +16,10 @@ namespace Ryvok
         readonly List<Obstacle> _active = new List<Obstacle>();
         readonly Queue<Obstacle> _pool = new Queue<Obstacle>();
 
+        float _burnTimer;      // Blaze ult: auto-incinerate in-zone threats
+        Color _burnColor;
+        float _freezeTimer;    // Frost ult: threats hold position
+
         void Awake()
         {
             if (Instance != null && Instance != this) { Destroy(gameObject); return; }
@@ -37,10 +41,22 @@ namespace Ryvok
             var gm = GameManager.Instance;
             if (gm == null || gm.State != GameState.Playing) return;
 
+            // Blaze ult: incinerate anything in the strike zone.
+            if (_burnTimer > 0f)
+            {
+                _burnTimer -= Time.deltaTime;
+                BurnTick();
+            }
+
+            // Frost ult: threats hold position while frozen.
+            bool frozen = _freezeTimer > 0f;
+            if (frozen) _freezeTimer -= Time.deltaTime;
+
             // Advance active obstacles; handle ones that reached the hero.
             for (int i = _active.Count - 1; i >= 0; i--)
             {
                 Obstacle o = _active[i];
+                if (frozen) continue; // frozen: no movement, no stagger tick, no damage
                 if (o.Advance(gm.Speed))
                 {
                     _active.RemoveAt(i);
@@ -50,6 +66,30 @@ namespace Ryvok
                 }
             }
         }
+
+        /// <summary>Blaze ult — destroy every in-zone threat this frame as a scored kill.</summary>
+        void BurnTick()
+        {
+            float maxZ = StrikeMaxZ();
+            for (int i = _active.Count - 1; i >= 0; i--)
+            {
+                Obstacle o = _active[i];
+                if (!o.InZone(maxZ)) continue;
+                Vector3 pos = o.transform.position;
+                _active.RemoveAt(i);
+                Recycle(o);
+                GameManager.Instance.AddScore(Config.ScorePerKill * ComboManager.Instance.Multiplier);
+                Vfx.Pop(pos, _burnColor);
+            }
+        }
+
+        public void BurnFor(float seconds, Color color)
+        {
+            _burnTimer = seconds;
+            _burnColor = color;
+        }
+
+        public void FreezeFor(float seconds) => _freezeTimer = seconds;
 
         public void SpawnThreat(SwipeDirection input, int lane) =>
             SpawnThreat(input, lane, SwipeDirection.None);
@@ -134,7 +174,8 @@ namespace Ryvok
                 var hero = HeroController.Instance;
                 if (hero != null && hero.Data != null)
                 {
-                    var ctx = new AbilityContext { hero = hero, input = dir, position = pos };
+                    float earliness = Mathf.InverseLerp(Config.StrikeZoneMin, maxZ, pos.z);
+                    var ctx = new AbilityContext { hero = hero, input = dir, position = pos, earliness = earliness };
                     hero.OnStrikeSuccess(in ctx);
                 }
                 else
@@ -199,6 +240,8 @@ namespace Ryvok
         {
             for (int i = _active.Count - 1; i >= 0; i--) Recycle(_active[i]);
             _active.Clear();
+            _burnTimer = 0f;
+            _freezeTimer = 0f;
         }
 
         // ---- pooling ----
