@@ -29,6 +29,8 @@ namespace Ryvok
         public static readonly Color Hero  = new Color(0.23f, 0.63f, 1f);
         public static readonly Color Ground= new Color(0.16f, 0.55f, 0.34f);
         public static readonly Color Stripe= new Color(0.12f, 0.42f, 0.26f);
+        public static readonly Color OrbColor  = new Color(0.45f, 1f, 0.85f);   // energy mint
+        public static readonly Color CoinColor = new Color(1f, 0.85f, 0.25f);   // gold
 
         public static Color ForDirection(SwipeDirection d)
         {

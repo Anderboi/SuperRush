@@ -45,6 +45,7 @@ namespace Ryvok
                 case GameState.Playing:
                     GUI.Label(new Rect(20, 16, 400, 60), "Score " + gm.Score, _big);
                     GUI.Label(new Rect(20, 78, 400, 30), "Lives " + gm.Lives, _mid);
+                    GUI.Label(new Rect(20, 112, 400, 26), "Coins " + gm.Coins, _small);
                     int combo = ComboManager.Instance != null ? ComboManager.Instance.Combo : 0;
                     if (combo > 1) Center(combo + "x  COMBO", _mid, -Screen.height / 2 + 40);
                     GUI.Label(new Rect(Screen.width - 180, 16, 200, 30), "Speed " + gm.Speed.ToString("0.0"), _small);
@@ -54,7 +55,8 @@ namespace Ryvok
                 case GameState.GameOver:
                     Center("GAME OVER", _big, -100);
                     Center("Score " + gm.Score + "    Best " + gm.Best, _mid, -30);
-                    Center("Swipe or Space to retry", _small, 20);
+                    Center("Coins +" + gm.Coins, _small, 6);
+                    Center("Swipe or Space to retry", _small, 40);
                     break;
             }
         }

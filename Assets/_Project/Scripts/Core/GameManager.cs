@@ -15,6 +15,7 @@ namespace Ryvok
         public float Speed { get; private set; }
         public int Lives { get; private set; }
         public int Score { get; private set; }
+        public int Coins { get; private set; }   // run pickup count; banking/economy is M3
         public float Distance { get; private set; }
         public int Best { get; private set; }
 
@@ -78,6 +79,7 @@ namespace Ryvok
         public void StartRun()
         {
             Score = 0;
+            Coins = 0;
             Lives = HeroController.Instance != null ? HeroController.Instance.MaxLives : Config.StartLives;
             Distance = 0f;
             Speed = Config.StartSpeed;
@@ -96,13 +98,17 @@ namespace Ryvok
             _scoreMultUntil = Time.time + seconds;
         }
 
-        public void AddScore(int amount)
+        /// <summary>Add score. Returns the final amount (after any active multiplier).</summary>
+        public int AddScore(int amount)
         {
-            if (amount == 0) return;
+            if (amount == 0) return 0;
             if (Time.time < _scoreMultUntil) amount *= _scoreMultFactor;
             Score += amount;
             OnScored?.Invoke(amount);
+            return amount;
         }
+
+        public void AddCoins(int amount) => Coins += amount;
 
         public void Damage()
         {

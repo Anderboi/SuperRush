@@ -49,6 +49,13 @@ namespace Ryvok
         public const float StaggerWindow = 0.6f;    // seconds to land the 2nd input
         public const int   TwoStepBonus  = 15;      // bonus score on a finished two-step (×combo)
         public const float TwoStepScale  = 1.25f;   // bigger silhouette so it reads as special
+
+        // Drops (GDD §7, §9): some kills shed energy orbs that home to the hero.
+        public const float OrbDropChance  = 0.35f;  // chance a kill drops orbs (two-step always does)
+        public const int   OrbsPerDrop    = 3;
+        public const int   OrbScore       = 5;      // score per collected orb (GDD §9)
+        public const float OrbCharge      = 3f;     // ult charge per collected orb
+        public const float CoinDropChance = 0.12f;  // extra roll: a coin alongside the orbs
     }
 
     public enum HeightLevel { Low, Mid, High }

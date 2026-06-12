@@ -78,8 +78,10 @@ namespace Ryvok
                 Vector3 pos = o.transform.position;
                 _active.RemoveAt(i);
                 Recycle(o);
-                GameManager.Instance.AddScore(Config.ScorePerKill * ComboManager.Instance.Multiplier);
+                // No drops from ult kills — the ult shouldn't recharge itself.
+                int gain = GameManager.Instance.AddScore(Config.ScorePerKill * ComboManager.Instance.Multiplier);
                 Vfx.Pop(pos, _burnColor);
+                ScorePopup.Show(pos, "+" + gain, _burnColor, 0.8f);
             }
         }
 
@@ -160,15 +162,20 @@ namespace Ryvok
                 Recycle(target);
 
                 int mult = ComboManager.Instance.Multiplier;
-                GameManager.Instance.AddScore(Config.ScorePerKill * mult);
+                int gain = GameManager.Instance.AddScore(Config.ScorePerKill * mult);
                 ComboManager.Instance.RegisterKill();
 
                 if (twoStep)
                 {
                     // Mastery reward: bonus score + an extra streak tick (GDD §7.1).
-                    GameManager.Instance.AddScore(Config.TwoStepBonus * mult);
+                    gain += GameManager.Instance.AddScore(Config.TwoStepBonus * mult);
                     ComboManager.Instance.RegisterKill();
                 }
+
+                ScorePopup.Show(pos, "+" + gain,
+                    twoStep ? new Color(1f, 0.9f, 0.3f) : Color.white,
+                    twoStep ? 1.3f : 1f);
+                OrbManager.Instance?.TryDropAt(pos, guaranteed: twoStep);
 
                 // Hero applies the flavour: element VFX, hit-stop, ult charge, passive.
                 var hero = HeroController.Instance;
@@ -212,10 +219,11 @@ namespace Ryvok
             Vector3 pos = best.transform.position;
             Recycle(best);
 
-            int gain = Config.ScorePerKill * ComboManager.Instance.Multiplier;
-            GameManager.Instance.AddScore(gain);
+            int gain = GameManager.Instance.AddScore(Config.ScorePerKill * ComboManager.Instance.Multiplier);
             ComboManager.Instance.RegisterKill();
             Vfx.Pop(pos, color);
+            ScorePopup.Show(pos, "+" + gain, color, 0.85f);
+            OrbManager.Instance?.TryDropAt(pos);
             CameraShake.Shake(0.1f);
             return true;
         }
@@ -229,8 +237,10 @@ namespace Ryvok
                 Obstacle o = _active[i];
                 Vector3 pos = o.transform.position;
                 Recycle(o);
-                GameManager.Instance.AddScore(Config.ScorePerKill * ComboManager.Instance.Multiplier);
+                // No drops from ult kills — the ult shouldn't recharge itself.
+                int gain = GameManager.Instance.AddScore(Config.ScorePerKill * ComboManager.Instance.Multiplier);
                 Vfx.Pop(pos, color);
+                ScorePopup.Show(pos, "+" + gain, color, 0.8f);
             }
             _active.Clear();
             return n;
