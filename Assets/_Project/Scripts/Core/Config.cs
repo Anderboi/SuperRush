@@ -32,9 +32,13 @@ namespace Ryvok
         public const float MaxSpeed = 20f;
         public const float SpeedRampPerSec = 0.06f;   // +units/sec of speed, per second
 
-        // Spawn gap (seconds) shrinks as the run gets faster.
+        // Spawn gap (seconds) shrinks as the run gets faster. The Spawn Director
+        // treats this gap as one "beat" and scales authored pattern spacing by it.
         public const float StartGap = 1.5f;
         public const float MinGap = 0.55f;
+
+        // Rest between authored patterns, in beats (see SpawnDirector).
+        public const float PatternRestBeats = 1.0f;
 
         // Run rules.
         public const int StartLives = 3;

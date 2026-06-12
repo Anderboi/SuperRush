@@ -75,7 +75,8 @@ namespace Ryvok
             sys.AddComponent<SwipeDetector>();
             sys.AddComponent<GameManager>();
             sys.AddComponent<ComboManager>();
-            sys.AddComponent<ObstacleSpawner>();
+            sys.AddComponent<ObstacleSpawner>();   // the field (pool + advance + resolve)
+            sys.AddComponent<SpawnDirector>();     // decides what/when to spawn
             sys.AddComponent<GroundScroller>();
             sys.AddComponent<HudDebug>();
         }

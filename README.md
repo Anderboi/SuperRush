@@ -42,7 +42,8 @@
 Assets/_Project/Scripts/
   Core/      Config, GameState, GameManager, Bootstrap
   Input/     SwipeDirection, SwipeDetector
-  Gameplay/  Obstacle, ObstacleSpawner (spawn director + резолв), HeroController, GroundScroller
+  Gameplay/  Obstacle, ObstacleSpawner (поле: пул + движение + резолв), HeroController, GroundScroller
+  Spawning/  SpawnPattern (ScriptableObject-волна), SpawnDirector (выбор паттернов под сложность)
   Scoring/   ComboManager
   Feel/      CameraShake, Vfx, MaterialUtil
   UI/        HudDebug (OnGUI, временный)
@@ -54,7 +55,7 @@ Assets/_Project/Scripts/
 
 ## Куда расти дальше (маппинг на GDD)
 
-- `ObstacleSpawner` → авторские паттерны-чанки как ScriptableObject (Spawn Director, GDD 9).
+- ~~`ObstacleSpawner` → авторские паттерны-чанки как ScriptableObject (Spawn Director, GDD 9).~~ ✅ **Готово:** `Spawning/SpawnDirector` + `SpawnPattern` (SO). Директор ведёт кривую сложности (0→1 по скорости), выбирает паттерны подходящего бэнда и играет их слоты по «битам». Дефолтная библиотека из 9 волн собрана в коде (zero-setup); свои волны можно создавать ассетами (Create → Ryvok → Spawn Pattern) и закидывать в список `patterns` директора.
 - `HeroController` → ability-система на ScriptableObject (`ввод → эффект`), стартовый герой Вольт (GDD 8, 14.2).
 - двухходовки (7.1): у `Obstacle` уже задел — добавить упорядоченную последовательность стадий + окно-стаггер.
 - `HudDebug` → TMP-HUD с кириллицей; `Vfx`/`CameraShake` → пул партиклов + Cinemachine Impulse.
