@@ -9,7 +9,7 @@ namespace Ryvok
     /// </summary>
     public class HudDebug : MonoBehaviour
     {
-        GUIStyle _big, _mid, _small;
+        GUIStyle _big, _mid, _small, _accent;
 
         void Init()
         {
@@ -19,6 +19,8 @@ namespace Ryvok
             _mid.normal.textColor = Color.white;
             _small = new GUIStyle { fontSize = 18 };
             _small.normal.textColor = new Color(1f, 1f, 1f, 0.85f);
+            _accent = new GUIStyle { fontSize = 26, fontStyle = FontStyle.Bold };
+            _accent.normal.textColor = new Color(1f, 0.9f, 0.3f);
         }
 
         void OnGUI()
@@ -40,6 +42,9 @@ namespace Ryvok
                     }
                     Center("Swipe or press an Arrow / WASD to start", _mid, 14);
                     Center("Up=aerial   Down=ground   Left/Right=lanes   Tap/Space=front   F=ultimate", _small, 56);
+                    DrawCoreProgress(96);
+                    Center("Best " + gm.Best + "    Bank " + SaveSystem.Data.coins + " coins"
+                           + "    Runs " + SaveSystem.Data.runs, _small, 146);
                     break;
 
                 case GameState.Playing:
@@ -53,12 +58,42 @@ namespace Ryvok
                     break;
 
                 case GameState.GameOver:
-                    Center("GAME OVER", _big, -100);
-                    Center("Score " + gm.Score + "    Best " + gm.Best, _mid, -30);
-                    Center("Coins +" + gm.Coins, _small, 6);
-                    Center("Swipe or Space to retry", _small, 40);
+                    Center("GAME OVER", _big, -150);
+                    if (gm.NewBest) Center("NEW BEST!", _accent, -96);
+                    Center("Score " + gm.Score + "    Distance " + Mathf.FloorToInt(gm.Distance) + " m", _mid, -56);
+                    Center("Best " + gm.Best + "    Best distance " + Mathf.FloorToInt(gm.BestDistance) + " m", _small, -16);
+                    Center("Coins +" + gm.Coins + "    Bank " + SaveSystem.Data.coins, _small, 12);
+                    DrawCoreProgress(48);
+                    Center("Swipe or Space to retry", _small, 100);
                     break;
             }
+        }
+
+        // Progress map to the Core (GDD §2): best distance as the meta-goal readout.
+        // On the results screen the run's own distance is overlaid as a brighter notch.
+        void DrawCoreProgress(float yOffset)
+        {
+            var gm = GameManager.Instance;
+            float best01 = Mathf.Clamp01(gm.BestDistance / Config.CoreDistance);
+
+            const float w = 320f, h = 14f;
+            float x = (Screen.width - w) / 2f;
+            float y = Screen.height / 2f + yOffset;
+
+            GUI.Box(new Rect(x, y, w, h), GUIContent.none);
+            Color prev = GUI.color;
+            GUI.color = new Color(0.55f, 0.92f, 1f);
+            GUI.Box(new Rect(x + 2f, y + 2f, (w - 4f) * best01, h - 4f), GUIContent.none);
+
+            if (gm.State == GameState.GameOver)
+            {
+                float run01 = Mathf.Clamp01(gm.Distance / Config.CoreDistance);
+                GUI.color = new Color(1f, 0.9f, 0.3f);
+                GUI.Box(new Rect(x + 2f + (w - 6f) * run01, y - 2f, 4f, h + 4f), GUIContent.none);
+            }
+            GUI.color = prev;
+
+            Center("Path to the Core  " + Mathf.FloorToInt(best01 * 100f) + "%", _small, yOffset + 18f);
         }
 
         // Hero name + ultimate meter / super button (placeholder; real UI is post-MVP).

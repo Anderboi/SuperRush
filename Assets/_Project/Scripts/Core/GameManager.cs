@@ -15,9 +15,11 @@ namespace Ryvok
         public float Speed { get; private set; }
         public int Lives { get; private set; }
         public int Score { get; private set; }
-        public int Coins { get; private set; }   // run pickup count; banking/economy is M3
+        public int Coins { get; private set; }   // this run's pickups; banked into the save on death
         public float Distance { get; private set; }
         public int Best { get; private set; }
+        public float BestDistance { get; private set; }
+        public bool NewBest { get; private set; }   // this run set a score record (results flair)
 
         public event Action OnRunStart;
         public event Action OnRunEnd;
@@ -30,6 +32,8 @@ namespace Ryvok
             if (Instance != null && Instance != this) { Destroy(gameObject); return; }
             Instance = this;
             Speed = Config.StartSpeed;
+            Best = SaveSystem.Data.bestScore;
+            BestDistance = SaveSystem.Data.bestDistance;
         }
 
         void OnEnable()
@@ -120,7 +124,18 @@ namespace Ryvok
 
         void EndRun()
         {
+            NewBest = Score > Best;
             Best = Mathf.Max(Best, Score);
+            BestDistance = Mathf.Max(BestDistance, Distance);
+
+            // Persist records + bank the run's coins (GDD §14.2 Save System).
+            var save = SaveSystem.Data;
+            save.bestScore = Best;
+            save.bestDistance = BestDistance;
+            save.coins += Coins;
+            save.runs++;
+            SaveSystem.Save();
+
             SetState(GameState.GameOver);
             OnRunEnd?.Invoke();
         }

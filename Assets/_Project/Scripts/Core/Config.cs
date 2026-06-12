@@ -45,6 +45,10 @@ namespace Ryvok
         public const int ScorePerKill = 10;
         public const float ComboWindow = 2.5f;
 
+        // Narrative meta-goal (GDD §2): the Core sits this far away; best distance
+        // maps to "how far the team has pushed" on the progress readout.
+        public const float CoreDistance = 2500f;
+
         // Two-step obstacles (GDD §7.1).
         public const float StaggerWindow = 0.6f;    // seconds to land the 2nd input
         public const int   TwoStepBonus  = 15;      // bonus score on a finished two-step (×combo)
