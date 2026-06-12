@@ -54,6 +54,10 @@ namespace Ryvok
                     int combo = ComboManager.Instance != null ? ComboManager.Instance.Combo : 0;
                     if (combo > 1) Center(combo + "x  COMBO", _mid, -Screen.height / 2 + 40);
                     GUI.Label(new Rect(Screen.width - 180, 16, 200, 30), "Speed " + gm.Speed.ToString("0.0"), _small);
+                    var bm = BiomeManager.Instance;
+                    if (bm != null && bm.CurrentBiomeName.Length > 0)
+                        GUI.Label(new Rect(Screen.width - 180, 44, 200, 26),
+                                  bm.CurrentBiomeName + (bm.InTransition ? "..." : ""), _small);
                     DrawUltimate();
                     DrawBossBar();
                     break;

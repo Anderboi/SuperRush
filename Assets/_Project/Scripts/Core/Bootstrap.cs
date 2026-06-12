@@ -80,6 +80,7 @@ namespace Ryvok
             sys.AddComponent<BossSystem>();        // scripted encounters every ~500 m
             sys.AddComponent<OrbManager>();        // pickup drops (orbs/coins)
             sys.AddComponent<GroundScroller>();
+            sys.AddComponent<BiomeManager>();      // palette transitions (GDD §11)
             sys.AddComponent<HitStop>();
             sys.AddComponent<HudDebug>();
         }
