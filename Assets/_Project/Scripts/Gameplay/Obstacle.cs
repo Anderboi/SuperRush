@@ -34,7 +34,8 @@ namespace Ryvok
             _renderer = GetComponentInChildren<Renderer>();
         }
 
-        public void Spawn(int lane, HeightLevel height, SwipeDirection first, SwipeDirection second)
+        public void Spawn(int lane, HeightLevel height, SwipeDirection first, SwipeDirection second,
+                          float spawnZ = Config.SpawnZ)
         {
             _first = first;
             _second = second;
@@ -47,7 +48,7 @@ namespace Ryvok
             float y = height == HeightLevel.Low ? Config.HeightLow
                     : height == HeightLevel.High ? Config.HeightHigh
                     : Config.HeightMid;
-            _t.position = new Vector3(x, y, Config.SpawnZ);
+            _t.position = new Vector3(x, y, spawnZ);
 
             // Two-step reads as a bigger, special silhouette before you engage it.
             _baseScale = Vector3.one * (IsTwoStep ? Config.TwoStepScale : 0.95f);

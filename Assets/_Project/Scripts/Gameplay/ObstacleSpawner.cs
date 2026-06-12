@@ -101,9 +101,11 @@ namespace Ryvok
         /// taxonomy (GDD §6–7): Up=high, Down=low, Left/Right/Tap force their lane at
         /// mid height. <paramref name="lane"/> only applies to Up/Down. A non-None
         /// <paramref name="second"/> makes it a two-step obstacle (GDD §7.1). Called
-        /// by the SpawnDirector.
+        /// by the SpawnDirector, and by the BossSystem with a custom
+        /// <paramref name="spawnZ"/> so volleys visibly come from the boss.
         /// </summary>
-        public void SpawnThreat(SwipeDirection input, int lane, SwipeDirection second)
+        public void SpawnThreat(SwipeDirection input, int lane, SwipeDirection second,
+                                float spawnZ = Config.SpawnZ)
         {
             int useLane;
             HeightLevel height;
@@ -118,7 +120,7 @@ namespace Ryvok
             }
 
             Obstacle o = Get();
-            o.Spawn(useLane, height, input, second);
+            o.Spawn(useLane, height, input, second, spawnZ);
             _active.Add(o);
         }
 

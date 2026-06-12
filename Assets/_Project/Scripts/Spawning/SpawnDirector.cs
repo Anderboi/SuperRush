@@ -40,12 +40,16 @@ namespace Ryvok
             if (GameManager.Instance != null) GameManager.Instance.OnRunStart -= ResetRun;
         }
 
-        /// <summary>Hold off spawning for a while (e.g. Volt's ultimate stun).</summary>
-        public void Stun(float seconds)
+        /// <summary>
+        /// Hold off spawning for at least <paramref name="seconds"/>. Pass
+        /// <paramref name="force"/>=true to override a longer active stun (used by
+        /// BossSystem to end the fight-long freeze and replace it with a short breather).
+        /// </summary>
+        public void Stun(float seconds, bool force = false)
         {
             _current = null;
             _slot = 0;
-            _timer = Mathf.Max(_timer, seconds);
+            _timer = force ? seconds : Mathf.Max(_timer, seconds);
         }
 
         void Start()

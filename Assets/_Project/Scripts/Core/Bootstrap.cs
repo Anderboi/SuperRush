@@ -77,6 +77,7 @@ namespace Ryvok
             sys.AddComponent<ComboManager>();
             sys.AddComponent<ObstacleSpawner>();   // the field (pool + advance + resolve)
             sys.AddComponent<SpawnDirector>();     // decides what/when to spawn
+            sys.AddComponent<BossSystem>();        // scripted encounters every ~500 m
             sys.AddComponent<OrbManager>();        // pickup drops (orbs/coins)
             sys.AddComponent<GroundScroller>();
             sys.AddComponent<HitStop>();

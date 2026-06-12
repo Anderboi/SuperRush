@@ -55,6 +55,7 @@ namespace Ryvok
                     if (combo > 1) Center(combo + "x  COMBO", _mid, -Screen.height / 2 + 40);
                     GUI.Label(new Rect(Screen.width - 180, 16, 200, 30), "Speed " + gm.Speed.ToString("0.0"), _small);
                     DrawUltimate();
+                    DrawBossBar();
                     break;
 
                 case GameState.GameOver:
@@ -66,6 +67,42 @@ namespace Ryvok
                     DrawCoreProgress(48);
                     Center("Swipe or Space to retry", _small, 100);
                     break;
+            }
+        }
+
+        // Boss HP bar + weak-spot hint (GDD §7).
+        void DrawBossBar()
+        {
+            var boss = BossSystem.Instance;
+            if (boss == null || !boss.BossActive) return;
+
+            const float w = 280f, h = 16f;
+            float x = (Screen.width - w) / 2f;
+            float y = 20f;
+
+            // Label
+            Center("!! LIEUTENANT !!", _mid, -Screen.height / 2f + 36f);
+
+            // HP bar
+            Color prev = GUI.color;
+            GUI.Box(new Rect(x, y, w, h), GUIContent.none);
+            GUI.color = new Color(1f, 0.3f, 0.2f);
+            GUI.Box(new Rect(x + 2f, y + 2f, (w - 4f) * boss.BossHealth01, h - 4f), GUIContent.none);
+            GUI.color = prev;
+
+            // Weak-spot hint
+            var ws = boss.CurrentWeakSpot;
+            if (ws != SwipeDirection.None)
+            {
+                string hint = ws switch
+                {
+                    SwipeDirection.Up    => "SWIPE UP",
+                    SwipeDirection.Down  => "SWIPE DOWN",
+                    SwipeDirection.Left  => "SWIPE LEFT",
+                    SwipeDirection.Right => "SWIPE RIGHT",
+                    _                    => "TAP",
+                };
+                Center(">>> " + hint + " <<<", _accent, -Screen.height / 2f + 76f);
             }
         }
 

@@ -49,6 +49,14 @@ namespace Ryvok
         // maps to "how far the team has pushed" on the progress readout.
         public const float CoreDistance = 2500f;
 
+        // Boss encounters (GDD §7: every ~500 m, multi-phase, scripted patterns).
+        public const float BossInterval = 500f;     // metres between lieutenants
+        public const float BossZ = 20f;             // where the boss parks ahead of the hero
+        public const int   BossHitsPerPhase = 2;    // weak-spot hits to break one phase
+        public const float BossVulnerableWindow = 1.6f;  // seconds per weak-spot read
+        public const int   BossScorePerHit = 25;
+        public const int   BossKillBonus = 250;
+
         // Two-step obstacles (GDD §7.1).
         public const float StaggerWindow = 0.6f;    // seconds to land the 2nd input
         public const int   TwoStepBonus  = 15;      // bonus score on a finished two-step (×combo)
